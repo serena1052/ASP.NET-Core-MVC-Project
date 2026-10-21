@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>餐廳工作排班管理系統</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3a4750;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+        }
+
+        .main-hero {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .system-title {
+            color: #2b3a4a;
+            font-size: 3.8rem;
+            font-weight: 800;
+            line-height: 1.3;
+            letter-spacing: 2px;
+        }
+
+        .btn-enter {
+            background-color: #2b3a4a;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.15rem;
+            letter-spacing: 2px;
+            padding: 1rem 3.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(43, 58, 74, 0.1);
+        }
+
+            .btn-enter:hover {
+                background-color: #41566b;
+                color: #ffffff;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(43, 58, 74, 0.2);
+            }
+    </style>
+</head>
+<body>
+
+    <div class="container text-center">
+        <div class="main-hero mx-auto">
+
+            <h1 class="system-title mb-5">
+                餐廳工作<br>排班管理系統
+            </h1>
+
+            <div class="pt-2">
+                <a href="/Schedule/Login" class="btn btn-enter fw-bold shadow-sm">
+                    進入管理系統 ➔
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

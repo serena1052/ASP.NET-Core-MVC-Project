@@ -1,0 +1,491 @@
+﻿@model IEnumerable<project.Models.Schedule>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>考勤面板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            font-size: 14px;
+            color: #000000 !important;
+        }
+
+        .text-primary, .text-secondary, .text-muted, .text-white-50 {
+            color: #000000 !important;
+        }
+
+        .navbar-brand, .navbar-text, h4, h5, h6, label {
+            color: #000000 !important;
+        }
+
+        .nav-tabs .nav-link {
+            font-size: 14px;
+            color: #000000 !important;
+            border: none;
+            padding: 12px 20px;
+        }
+
+            .nav-tabs .nav-link.active {
+                font-weight: bold;
+                border-bottom: 3px solid #2b3a4a;
+                color: #000000 !important;
+                background: none;
+            }
+
+            .nav-tabs .nav-link:hover {
+                color: #2b3a4a !important;
+                border-bottom: 3px solid #cbd5e1;
+            }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+        }
+
+        .metric-card {
+            border-radius: 8px;
+            background: #e2e8f0 !important;
+            border-left: 4px solid #2b3a4a;
+            color: #000000 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+            .metric-card:hover {
+                transform: translateY(-3px);
+            }
+
+        .table th {
+            font-size: 14px;
+            padding: 12px 6px !important;
+            color: #000000 !important;
+            border-color: #cbd5e1 !important;
+            background-color: #f1f5f9 !important;
+        }
+
+        .table td {
+            font-size: 14px;
+            color: #000000 !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        .sche-card {
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .form-select, .form-control {
+            font-size: 14px !important;
+            color: #000000 !important;
+        }
+
+        .btn-logout {
+            background-color: #2b3a4a !important;
+            color: #ffffff !important;
+            border: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-logout:hover {
+                background-color: #41566b !important;
+                color: #ffffff !important;
+            }
+
+        .btn-action-primary {
+            background-color: #2b3a4a !important;
+            color: #ffffff !important;
+            border: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-action-primary:hover {
+                background-color: #41566b !important;
+                color: #ffffff !important;
+            }
+
+        .btn-action-outline {
+            color: #2b3a4a !important;
+            border-color: #cbd5e1 !important;
+            background-color: #ffffff !important;
+            border-radius: 4px;
+        }
+
+            .btn-action-outline:hover {
+                background-color: #f1f5f9 !important;
+                color: #2b3a4a !important;
+            }
+
+        .btn-action-danger {
+            color: #dc2626 !important;
+            border-color: #fca5a5 !important;
+            background-color: #ffffff !important;
+            border-radius: 4px;
+        }
+
+            .btn-action-danger:hover {
+                background-color: #fef2f2 !important;
+                color: #dc2626 !important;
+            }
+
+        .badge {
+            color: #000000 !important;
+            font-weight: normal;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 4px;
+        }
+
+            .badge.bg-success {
+                background-color: #f0fdf4 !important;
+                border-left: 3px solid #16a34a;
+            }
+
+            .badge.bg-warning {
+                background-color: #fffbeb !important;
+                border-left: 3px solid #d97706;
+            }
+
+            .badge.bg-primary {
+                background-color: #f0f9ff !important;
+                border-left: 3px solid #0284c7;
+            }
+
+            .badge.bg-danger {
+                background-color: #fef2f2 !important;
+                border-left: 3px solid #dc2626;
+            }
+
+        .tab-content-section {
+            display: none;
+        }
+
+            .tab-content-section.active {
+                display: block;
+                animation: fadeIn 0.3s ease-in-out;
+            }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm mb-4">
+        <div class="container-fluid mx-4">
+            <a class="navbar-brand fw-bold fs-5" href="#">營運系統</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 nav nav-tabs border-bottom-0" id="staffTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="switchTab(event, 'weekly-schedule-tab')">每週工作時間表</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="switchTab(event, 'punch-control-tab')">每日即時打卡控制台</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="switchTab(event, 'leave-apply-tab')">線上請假單申請</a>
+                    </li>
+                </ul>
+                <span class="navbar-text me-3 fw-bold small">員工: @Context.Session.GetString("Name")</span>
+                <a href="/Schedule/Logout" class="btn btn-sm btn-logout px-3">登出</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+
+        <div id="weekly-schedule-tab" class="tab-content-section active">
+            <div class="card p-4 shadow-sm mb-4" style="background: rgba(255, 255, 255, 0.75); border: none; border-radius: 12px;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold mb-1 fs-4">每週工作時間表</h4>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="small fw-bold text-secondary mb-0 text-nowrap">選擇週別：</label>
+                        <input type="week" value="@ViewBag.SelectedWeek" onchange="window.location.href='/Schedule/StaffDashboard?week='+this.value" class="form-control form-control-sm">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle text-center bg-white shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                        <thead>
+                            <tr>
+                                <th style="width: 180px;">班別時段</th>
+                                @foreach (var date in ViewBag.WeekDates)
+                                {
+                                    <th>
+                                        <div class="small text-nowrap">@date.ToString("MM/dd")</div>
+                                        <div class="fw-bold text-nowrap">@date.ToString("ddd", new System.Globalization.CultureInfo("zh-TW"))</div>
+                                    </th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var slot in ViewBag.TimeSlots)
+                            {
+                                <tr>
+                                    <td class="fw-bold small" style="background-color: #f1f5f9;">@slot.slot_name</td>
+                                    @foreach (DateTime date in ViewBag.WeekDates)
+                                    {
+                                        <td>
+                                            @{
+                                                var weeklyList = (List<project.Models.Schedule>)ViewBag.MyWeeklySchedules;
+                                                var match = weeklyList?.FirstOrDefault(s => s.sche_date.Date == date.Date && s.slot_id == slot.slot_id);
+                                            }
+                                            @if (match != null)
+                                            {
+                                                string statusStr = match.status ?? "";
+                                                string bgStyle = "background-color: #e2e8f0; color: #000000; border-left: 4px solid #16a34a;";
+                                                if (statusStr.Contains("遲到")) bgStyle = "background-color: #fffbeb; color: #000000; border-left: 4px solid #d97706;";
+                                                else if (statusStr.Contains("Leave") || statusStr.Contains("請假")) bgStyle = "background-color: #fef2f2; color: #000000; border-left: 4px solid #dc2626;";
+                                                else if (statusStr.Contains("下班")) bgStyle = "background-color: #f0f9ff; color: #000000; border-left: 4px solid #0284c7;";
+
+                                                var displayStatus = statusStr == "Scheduled" ? "已排班" : statusStr.Replace("(元智一館)", "").Replace("元智一館", "").Trim();
+
+                                                <div class="sche-card shadow-sm text-start" style="@bgStyle">
+                                                    <div class="mb-1">@Context.Session.GetString("Name")</div>
+                                                    <div class="small opacity-90">@displayStatus</div>
+                                                </div>
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="punch-control-tab" class="tab-content-section">
+            <div class="card p-4 shadow-sm mb-4" style="background: rgba(255, 255, 255, 0.75); border: none; border-radius: 12px;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold mb-1 fs-4">工作打卡控制台</h4>
+                        <div id="liveClock" class="fw-bold fs-5 mt-2" style="color: #2b3a4a;"></div>
+                    </div>
+                    <span class="badge bg-primary">當日即時限定</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle text-center bg-white shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                        <thead>
+                            <tr>
+                                <th>工作日期</th>
+                                <th>排定時段</th>
+                                <th>當前指派與考勤狀態紀錄</th>
+                                <th style="width: 280px;">即時打卡動作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Any(s => s.sche_date.Date == DateTime.Today.Date))
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-muted py-5">
+                                        <h5 class="mb-1 fw-bold">本日無排班次</h5>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var item in Model.Where(s => s.sche_date.Date == DateTime.Today.Date))
+                                {
+                                    var statusStr = item.status ?? "";
+                                    <tr>
+                                        <td class="fw-bold fs-5">@item.sche_date.ToString("yyyy-MM-dd")</td>
+                                        <td>
+                                            <span class="badge bg-primary">@(item.TimeSlot?.slot_name ?? "未設定")</span>
+                                        </td>
+                                        <td>
+                                            @{
+                                                string badgeBg = "secondary";
+                                                if (statusStr.Contains("遲到")) badgeBg = "warning";
+                                                else if (statusStr.Contains("下班")) badgeBg = "primary";
+                                                else if (statusStr.Contains("上班")) badgeBg = "success";
+                                                else if (statusStr == "Scheduled") badgeBg = "primary";
+                                                else if (statusStr.Contains("Leave") || statusStr.Contains("請假")) badgeBg = "danger";
+
+                                                var cleanStatus = statusStr == "Scheduled" ? "已排班" : statusStr.Replace("(元智一館)", "").Replace("元智一館", "").Trim();
+                                            }
+                                            <span class="badge bg-@badgeBg fw-bold">@cleanStatus</span>
+                                        </td>
+                                        <td>
+                                            @if (statusStr.Contains("Leave") || statusStr.Contains("請假"))
+                                            {
+                                                <span class="text-danger fw-bold small">本日已請假結案</span>
+                                            }
+                                            else if (statusStr.Contains("下班"))
+                                            {
+                                                <span class="text-success fw-bold small">當班考勤已完整結案</span>
+                                            }
+                                            else if (statusStr == "Scheduled")
+                                            {
+                                                <button class="btn btn-action-primary w-100 text-white fw-bold py-2 shadow-sm" onclick="triggerMockPunch(@item.sche_id, '上班')">點擊：上班打卡</button>
+                                            }
+                                            else if (statusStr.Contains("上班") || statusStr.Contains("遲到"))
+                                            {
+                                                <button class="btn btn-action-outline w-100 fw-bold py-2 shadow-sm" onclick="triggerMockPunch(@item.sche_id, '下班')">點擊：下班打卡</button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="leave-apply-tab" class="tab-content-section">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="card p-4 shadow-sm mb-4" style="background: rgba(255, 255, 255, 0.75); border: none; border-radius: 12px; min-height: 400px;">
+                        <h5 class="fw-bold mb-2">填寫線上假單申請</h5>
+
+                        <form method="post" action="/Schedule/ApplyLeave">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-secondary">選擇請假日期</label>
+                                <input type="date" name="leave_date" class="form-control" required value="@DateTime.Today.ToString("yyyy-MM-dd")">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-secondary">請假類別</label>
+                                <select name="reason" class="form-select">
+                                    <option value="事假">事假</option>
+                                    <option value="病假">病假</option>
+                                    <option value="公假">公假</option>
+                                    <option value="生理假">生理假</option>
+                                    <option value="特休">特休</option>
+                                    <option value="婚假">婚假</option>
+                                    <option value="喪假">喪假</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-action-primary text-white w-100 fw-bold py-2 shadow-sm">送出請假申請</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-7">
+                    <div class="card p-4 shadow-sm mb-4" style="background: rgba(255, 255, 255, 0.75); border: none; border-radius: 12px; min-height: 400px;">
+                        <h5 class="fw-bold mb-3">假單申請紀錄</h5>
+                        <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                            <table class="table table-bordered align-middle text-center bg-white mb-0 small shadow-sm" style="border-radius: 6px; overflow: hidden;">
+                                <thead class="sticky-top">
+                                    <tr style="background-color: #f1f5f9;">
+                                        <th>請假日期</th>
+                                        <th>假別</th>
+                                        <th>審核狀態</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (ViewBag.MyLeaves == null || ((List<project.Models.LeaveRequest>)ViewBag.MyLeaves).Count == 0)
+                                    {
+                                        <tr>
+                                            <td colspan="3" class="text-muted py-4">目前尚無任何請假申請紀錄</td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        foreach (var leave in (List<project.Models.LeaveRequest>)ViewBag.MyLeaves)
+                                        {
+                                            string badgeColor = leave.status == "Approved" || leave.status == "已核准" ? "success" : (leave.status == "Rejected" || leave.status == "不准假" ? "danger" : "warning");
+
+                                            var cleanLeaveStatus = leave.status == "Pending" ? "待審核" : leave.status;
+
+                                            <tr>
+                                                <td>@leave.leave_date.ToString("yyyy-MM-dd")</td>
+                                                <td><span class="badge bg-light text-dark border px-2 py-1">@leave.leave_type</span></td>
+                                                <td><span class="badge bg-@badgeColor">@cleanLeaveStatus</span></td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <form id="hiddenPunchForm" method="post" action="/Schedule/PunchClock" style="display:none;">
+        <input type="hidden" name="scheId" id="punchScheId">
+        <input type="hidden" name="type" id="punchType">
+        <input type="hidden" name="lat" value="24.9700">
+        <input type="hidden" name="lon" value="121.2662">
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const activeTabId = localStorage.getItem('staffActiveTab');
+            if (activeTabId && document.getElementById(activeTabId)) {
+                const targetLink = document.querySelector(`[onclick*="${activeTabId}"]`);
+                if (targetLink) {
+                    const fakeEvent = { preventDefault: () => {}, currentTarget: targetLink };
+                    switchTab(fakeEvent, activeTabId);
+                }
+            }
+
+            function updateClock() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const date = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+
+                const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                const dayOfWeek = days[now.getDay()];
+
+                const clockElement = document.getElementById('liveClock');
+                if (clockElement) {
+                    clockElement.textContent = `現在時間：${year}-${month}-${date} ${hours}:${minutes}:${seconds} (${dayOfWeek})`;
+                }
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+        });
+
+        function switchTab(event, tabId) {
+            event.preventDefault();
+
+            const links = document.querySelectorAll('#staffTabs .nav-link');
+            links.forEach(link => link.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            const sections = document.querySelectorAll('.tab-content-section');
+            sections.forEach(section => section.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+
+            localStorage.setItem('staffActiveTab', tabId);
+        }
+
+        function triggerMockPunch(scheId, type) {
+            document.getElementById('punchScheId').value = scheId;
+            document.getElementById('punchType').value = type;
+
+            localStorage.setItem('staffActiveTab', 'punch-control-tab');
+
+            document.getElementById('hiddenPunchForm').submit();
+        }
+    </script>
+</body>
+</html>

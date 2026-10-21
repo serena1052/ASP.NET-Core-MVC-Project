@@ -1,0 +1,123 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>新員工註冊 - 餐廳工作排班管理系統</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .register-container {
+            background: transparent;
+            width: 420px;
+            margin: 0 auto;
+        }
+
+        .register-title {
+            color: #2b3a4a;
+            letter-spacing: 2px;
+            font-size: 2.2rem;
+        }
+
+        .form-label {
+            color: #3a4750;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .btn-custom-primary {
+            background-color: #2b3a4a;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-custom-primary:hover {
+                background-color: #41566b;
+                color: #ffffff;
+                transform: translateY(-1px);
+            }
+
+        .btn-custom-outline {
+            border: 1px solid #2b3a4a;
+            color: #2b3a4a;
+            background-color: transparent;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-custom-outline:hover {
+                background-color: #2b3a4a;
+                color: #ffffff;
+            }
+
+        .form-control {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+        }
+
+            .form-control:focus {
+                border-color: #41566b;
+                box-shadow: 0 0 0 0.25rem rgba(43, 58, 74, 0.12);
+            }
+    </style>
+</head>
+<body>
+
+    <div class="register-container">
+
+        <div class="text-center mb-4">
+            <h2 class="fw-bold register-title mb-3">員工首次註冊認證</h2>
+            <p class="text-muted small px-3">必須輸入您的工號與姓名才能完成綁定。</p>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger py-2 small text-center mb-4" style="border-radius: 6px; background-color: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2);">
+                ⚠️ @ViewBag.Error
+            </div>
+        }
+
+        <form method="post" action="/Schedule/Register">
+            <div class="mb-4">
+                <label class="form-label mb-2">工號 </label>
+                <input type="number" name="emp_id" class="form-control" placeholder="請輸入您的工號" required />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label mb-2">姓名</label>
+                <input type="text" name="name" class="form-control" placeholder="請輸入您的姓名" required />
+            </div>
+
+            <div class="mb-5">
+                <label class="form-label mb-2">電話號碼</label>
+                <input type="password" name="password" class="form-control" placeholder="請輸入您的電話號碼" required />
+            </div>
+
+            <button type="submit" class="btn btn-custom-primary w-100 fw-bold py-3 mb-3 shadow-sm">
+                驗證並完成註冊
+            </button>
+
+            <a href="/Schedule/Login" class="btn btn-custom-outline w-100 btn-sm py-2 fw-semibold text-decoration-none">
+                返回登入
+            </a>
+        </form>
+
+    </div>
+
+</body>
+</html>

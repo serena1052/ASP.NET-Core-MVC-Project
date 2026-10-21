@@ -1,0 +1,360 @@
+﻿@model IEnumerable<project.Models.Schedule>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>考勤打卡與統計圖表大面板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%), linear-gradient(rgba(43, 58, 74, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(43, 58, 74, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 20px 20px, 20px 20px;
+            min-height: 100vh;
+            font-size: 14px;
+            color: #000000 !important;
+            font-family: 'SF Pro Display', -apple-system, sans-serif;
+        }
+
+        .text-primary, .text-secondary, .text-muted, .text-white-50, .text-info {
+            color: #000000 !important;
+        }
+
+        .nav-tabs .nav-link {
+            font-size: 14px;
+            color: #000000 !important;
+        }
+
+            .nav-tabs .nav-link.active {
+                font-weight: bold;
+                border-bottom: 3px solid #2b3a4a;
+                color: #000000 !important;
+            }
+
+        .metric-card {
+            border-radius: 8px;
+            background: #e2e8f0 !important;
+            border-left: 4px solid #2b3a4a;
+            color: #000000 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+            .metric-card:hover {
+                transform: translateY(-3px);
+            }
+
+        .chart-container-card {
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.85) !important;
+            border: 1px solid rgba(203, 213, 225, 0.6);
+            box-shadow: 0 4px 16px rgba(43, 58, 74, 0.05);
+            backdrop-filter: blur(8px);
+            padding: 20px;
+            height: 340px;
+        }
+
+        .table th {
+            font-size: 14px;
+            padding: 12px 6px !important;
+            color: #000000 !important;
+            border-color: #cbd5e1 !important;
+            background-color: #f1f5f9 !important;
+        }
+
+        .table td {
+            font-size: 14px;
+            color: #000000 !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        .form-select, .form-control {
+            font-size: 14px !important;
+            color: #000000 !important;
+        }
+
+        .navbar-brand, .navbar-text, h4, h5, label {
+            color: #000000 !important;
+        }
+
+        .btn-logout {
+            background-color: #2b3a4a !important;
+            color: #ffffff !important;
+            border: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-logout:hover {
+                background-color: #41566b !important;
+                color: #ffffff !important;
+            }
+
+        .badge {
+            color: #000000 !important;
+            font-weight: normal;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 4px;
+        }
+
+            .badge.bg-success {
+                background-color: #e2e8f0 !important;
+                border-left: 3px solid #2b3a4a;
+            }
+
+            .badge.bg-warning {
+                background-color: #fffbeb !important;
+                border-left: 3px solid #b45309;
+            }
+
+            .badge.bg-danger {
+                background-color: #fef2f2 !important;
+                border-left: 3px solid #991b1b;
+            }
+
+            .badge.bg-info {
+                background-color: #f0fdf4 !important;
+                border-left: 3px solid #16a34a;
+            }
+
+            .badge.bg-primary {
+                background-color: #f8fafc !important;
+                border: 1px solid #cbd5e1;
+            }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm mb-4">
+        <div class="container-fluid mx-4">
+            <a class="navbar-brand fw-bold fs-5" href="#">營運系統</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 nav nav-tabs border-bottom-0">
+                    <li class="nav-item"><a class="nav-link" href="/Schedule/ManagerDashboard">每週指派排班表</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/Schedule/AttendanceReport">考勤打卡與統計圖表</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Schedule/LeaveReview">請假審核專區</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Schedule/EmployeeIndex">員工增刪改查</a></li>
+                </ul>
+                <span class="navbar-text me-3 fw-bold small">主管: @Context.Session.GetString("Name")</span>
+                <a href="/Schedule/Logout" class="btn btn-sm btn-logout px-3">登出系統</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        <div class="card p-4 shadow-sm mb-4" style="background: rgba(255, 255, 255, 0.75); border: none; border-radius: 12px;">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0 fs-4">數據監控面板</h4>
+
+                <form method="get" action="/Schedule/AttendanceReport" class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-1">
+                        <label class="fw-bold text-nowrap small mb-0">選擇月份：</label>
+                        <select name="searchMonth" class="form-select form-select-sm" onchange="this.form.submit()">
+                            @foreach (var month in ViewBag.AvailableMonths)
+                            {
+                                bool isSelected = (ViewBag.SelectedMonth == month);
+                                <!option value="@month" @(isSelected ? "selected" : "")>@month</!option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <label class="fw-bold text-nowrap small mb-0">篩選特定員工：</label>
+                        <select name="searchEmpId" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <!option value="">顯示全體員工</!option>
+                            @foreach (var emp in ViewBag.Employees)
+                            {
+                                <!option value="@emp.emp_id" @(ViewBag.SelectedEmpId == emp.emp_id ? "selected" : "")>@emp.name (@emp.job_title)</!option>
+                            }
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row g-3 mb-4 text-center">
+                <div class="col-md-4">
+                    <div class="p-3 metric-card">
+                        <div class="small fw-semibold">累計總工時 (@ViewBag.SelectedMonth)</div>
+                        <h3 class="fw-bold my-1 fs-4">@ViewBag.TotalHours 小時</h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 metric-card">
+                        <div class="small fw-semibold">應付總薪資 (@ViewBag.SelectedMonth)</div>
+                        <h3 class="fw-bold my-1 fs-4">NT$ @ViewBag.TotalSalary</h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 metric-card">
+                        <div class="small fw-semibold">當月狀態統計 (正常 / 遲到 / 請假)</div>
+                        <h3 class="fw-bold my-1 fs-4">@ViewBag.OnTimeCount / @ViewBag.LateCount / @ViewBag.LeaveCount</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="chart-container-card">
+                        <h6 class="fw-bold mb-3" style="color: #2b3a4a;">當月出勤狀態分佈比例</h6>
+                        <div style="height: 240px; display: flex; justify-content: center;">
+                            <canvas id="attendanceStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="chart-container-card">
+                        <h6 class="fw-bold mb-3" style="color: #2b3a4a;">員工累計工時統計對比 (小時)</h6>
+                        <div style="height: 240px;">
+                            <canvas id="employeeHoursChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle text-center bg-white shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                    <thead>
+                        <tr>
+                            <th>工號</th>
+                            <th>員工姓名</th>
+                            <th>排班日期</th>
+                            <th>班別時段</th>
+                            <th>上班打卡</th>
+                            <th>下班打卡</th>
+                            <th>當班總時長</th>
+                            <th>狀態備註</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model)
+                        {
+                            var statusStr = s.status ?? "";
+                            string checkInTime = "--:--";
+                            string checkOutTime = "--:--";
+                            string totalDurationText = "--";
+                            double durationHours = 0;
+
+                            var inMatch = System.Text.RegularExpressions.Regex.Match(statusStr, @"(?:上班|遲到)(?:於)?(\d{2}:\d{2})");
+                            var outMatch = System.Text.RegularExpressions.Regex.Match(statusStr, @"下班(?:於)?(\d{2}:\d{2})");
+
+                            if (inMatch.Success) { checkInTime = inMatch.Groups[1].Value; }
+                            if (outMatch.Success) { checkOutTime = outMatch.Groups[1].Value; }
+
+                            if (checkInTime != "--:--" && checkOutTime != "--:--")
+                            {
+                                try
+                                {
+                                    DateTime tIn = DateTime.ParseExact(checkInTime, "HH:mm", null);
+                                    DateTime tOut = DateTime.ParseExact(checkOutTime, "HH:mm", null);
+                                    if (tOut < tIn) tOut = tOut.AddDays(1);
+
+                                    TimeSpan duration = tOut - tIn;
+                                    totalDurationText = $"{duration.Hours} 小時 {duration.Minutes} 分鐘";
+                                    durationHours = duration.TotalHours;
+                                }
+                                catch { totalDurationText = "計算錯誤"; }
+                            }
+
+                            string badgeColor = "secondary";
+                            if (statusStr.Contains("遲到")) badgeColor = "warning";
+                            else if (statusStr.Contains("下班")) badgeColor = "info";
+                            else if (statusStr.Contains("上班")) badgeColor = "success";
+                            else if (statusStr == "Scheduled") badgeColor = "primary";
+                            else if (statusStr.Contains("Leave") || statusStr.Contains("請假")) badgeColor = "danger";
+
+                            var displayStatus = statusStr;
+                            if (statusStr == "Scheduled")
+                            {
+                                displayStatus = "已排班";
+                            }
+
+                            displayStatus = displayStatus.Replace("(元智一館)", "").Replace("元智一館", "").Trim();
+
+                            var cleanSlotName = s.TimeSlot?.slot_name != null ? s.TimeSlot.slot_name.Split(' ')[0].Split('(')[0] : "未設定";
+
+                            <tr class="attendance-row" data-name="@(s.Employee?.name ?? "未命名")" data-hours="@durationHours">
+                                <td><strong>@s.emp_id</strong></td>
+                                <td><span class="fw-semibold">@(s.Employee?.name ?? "未命名")</span></td>
+                                <td>@s.sche_date.ToString("yyyy-MM-dd")</td>
+                                <td><span class="fw-bold">@cleanSlotName</span></td>
+                                <td>@(checkInTime != "--:--" ? checkInTime : "--:--")</td>
+                                <td>@(checkOutTime != "--:--" ? checkOutTime : "--:--")</td>
+                                <td style="color: #000000 !important;">@totalDurationText</td>
+                                <td><span class="badge bg-@badgeColor">@displayStatus</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const onTimeCount = parseInt("@ViewBag.OnTimeCount") || 0;
+            const lateCount = parseInt("@ViewBag.LateCount") || 0;
+            const leaveCount = parseInt("@ViewBag.LeaveCount") || 0;
+
+            const ctxPie = document.getElementById('attendanceStatusChart').getContext('2d');
+            new Chart(ctxPie, {
+                type: 'pie',
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#000000', font: { weight: 'bold' } } }
+                    }
+                },
+                data: {
+                    labels: ['正常出勤', '遲到紀錄', '請假缺勤'],
+                    datasets: [{
+                        data: [onTimeCount, lateCount, leaveCount],
+                        backgroundColor: ['#2b3a4a', '#41566b', '#94a3b8'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                }
+            });
+
+            const empHoursData = {};
+            const rows = document.querySelectorAll('.attendance-row');
+            rows.forEach(row => {
+                const name = row.getAttribute('data-name');
+                const hours = parseFloat(row.getAttribute('data-hours')) || 0;
+                if (name && name !== "未命名") {
+                    empHoursData[name] = (empHoursData[name] || 0) + hours;
+                }
+            });
+
+            const names = Object.keys(empHoursData);
+            const hoursValues = Object.values(empHoursData).map(h => Math.round(h * 10) / 10);
+
+            const ctxBar = document.getElementById('employeeHoursChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: names.length ? names : ['暫無數據'],
+                    datasets: [{
+                        label: '累計工時',
+                        data: hoursValues.length ? hoursValues : [0],
+                        backgroundColor: '#41566b',
+                        borderRadius: 4,
+                        barThickness: 25
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' }, ticks: { color: '#000000' } },
+                        x: { grid: { display: false }, ticks: { color: '#000000', font: { weight: 'bold' } } }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
